@@ -146,6 +146,35 @@ class BaseStrategy(object):
         """Returns the :class:`datetime.datetime` for the current :class:`pyalgotrade.bar.Bars`."""
         return self.__barFeed.getCurrentDateTime()
 
+    def marketCashBuy(self, instrument, cashAmount, onClose=False, goodTillCanceled=False, allOrNone=False):
+        """Submits a market order.
+
+        :param instrument: Instrument identifier.
+        :type instrument: string.
+        :param cashAmount: The amount of cash.
+        :type quantity: int/float.
+        :param onClose: True if the order should be filled as close to the closing price as possible (Market-On-Close order). Default is False.
+        :type onClose: boolean.
+        :param goodTillCanceled: True if the order is good till canceled. If False then the order gets automatically canceled when the session closes.
+        :type goodTillCanceled: boolean.
+        :param allOrNone: True if the order should be completely filled or not at all.
+        :type allOrNone: boolean.
+        :rtype: The :class:`pyalgotrade.broker.MarketOrder` submitted.
+        """
+
+        ret = None
+        assert cashAmount > 0
+        if cashAmount > 0:
+            ret = self.getBroker().createCashBuyMarketOrder(
+                pyalgotrade.broker.Order.Action.BUY, instrument, cashAmount, onClose
+            )
+        if ret:
+            ret.setGoodTillCanceled(goodTillCanceled)
+            ret.setAllOrNone(allOrNone)
+            self.getBroker().submitOrder(ret)
+        return ret
+
+
     def marketOrder(self, instrument, quantity, onClose=False, goodTillCanceled=False, allOrNone=False):
         """Submits a market order.
 

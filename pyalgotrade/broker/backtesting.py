@@ -120,6 +120,26 @@ class MarketOrder(broker.MarketOrder, BacktestingOrder):
         return broker_.getFillStrategy().fillMarketOrder(broker_, self, bar_)
 
 
+class CashMarketOrder(broker.MarketOrder, BacktestingOrder):
+    def __init__(self, action, instrument, cashAmount, onClose, instrumentTraits):
+        super(CashMarketOrder, self).__init__(action, instrument, None, onClose, instrumentTraits)
+        self._quantity_caculated = False
+        self.__cash_amount = cashAmount
+
+    def process(self, broker_, bar_):
+        if not self._quantity_caculated:
+            if self.getFillOnClose():
+                price = bar_.getClose(broker_.getUseAdjustedValues())
+            else:
+                price = bar_.getOpen(broker_.getUseAdjustedValues())
+            self._setQuantity(self.cash2quantity(price, self.__cash_amount))
+
+        return broker_.getFillStrategy().fillMarketOrder(broker_, self, bar_)
+
+    def cash2quantity(self, price, cash):
+        return round(cash / float(price), 4)
+
+
 class LimitOrder(broker.LimitOrder, BacktestingOrder):
     def __init__(self, action, instrument, limitPrice, quantity, instrumentTraits):
         super(LimitOrder, self).__init__(action, instrument, limitPrice, quantity, instrumentTraits)
@@ -479,6 +499,12 @@ class Broker(broker.Broker):
 
     def peekDateTime(self):
         return None
+
+    def createCashBuyMarketOrder(self, action, instrument, cashAmount, onClose=False):
+        if onClose is True and self.__barFeed.isIntraday():
+            raise Exception("Market-on-close not supported with intraday feeds")
+
+        return CashMarketOrder(action, instrument, cashAmount, onClose, self.getInstrumentTraits(instrument))
 
     def createMarketOrder(self, action, instrument, quantity, onClose=False):
         # In order to properly support market-on-close with intraday feeds I'd need to know about different

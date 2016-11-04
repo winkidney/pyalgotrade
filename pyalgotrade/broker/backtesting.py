@@ -122,7 +122,13 @@ class MarketOrder(broker.MarketOrder, BacktestingOrder):
 
 class CashMarketOrder(broker.MarketOrder, BacktestingOrder):
     def __init__(self, action, instrument, cashAmount, onClose, instrumentTraits):
-        super(CashMarketOrder, self).__init__(action, instrument, None, onClose, instrumentTraits)
+        super(CashMarketOrder, self).__init__(
+            action,
+            instrument,
+            quantity=None,
+            onClose=onClose,
+            instrumentTraits=instrumentTraits
+        )
         self._quantity_caculated = False
         self.__cash_amount = cashAmount
 
@@ -133,6 +139,7 @@ class CashMarketOrder(broker.MarketOrder, BacktestingOrder):
             else:
                 price = bar_.getOpen(broker_.getUseAdjustedValues())
             self._setQuantity(self.cash2quantity(price, self.__cash_amount))
+            self._quantity_caculated = True
 
         return broker_.getFillStrategy().fillMarketOrder(broker_, self, bar_)
 

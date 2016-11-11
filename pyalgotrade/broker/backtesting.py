@@ -132,6 +132,9 @@ class CashMarketOrder(broker.MarketOrder, BacktestingOrder):
         self._quantity_caculated = False
         self.__cash_amount = cashAmount
 
+    def getCashAmount(self):
+        return self.__cash_amount
+
     def process(self, broker_, bar_):
         if not self._quantity_caculated:
             if self.getFillOnClose():
@@ -141,7 +144,10 @@ class CashMarketOrder(broker.MarketOrder, BacktestingOrder):
             self._setQuantity(self.cash2quantity(price, self.__cash_amount))
             self._quantity_caculated = True
 
-        return broker_.getFillStrategy().fillMarketOrder(broker_, self, bar_)
+        fill_info = broker_.getFillStrategy().fillCashMarketOrder(
+            broker_, self, bar_, self.getCashAmount()
+        )
+        return fill_info
 
     def cash2quantity(self, price, cash):
         return round(cash / float(price), 4)

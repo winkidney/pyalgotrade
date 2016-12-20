@@ -23,7 +23,7 @@ except ImportError:
     from distutils.core import setup
 
 setup(
-    name='PyAlgoTrade',
+    name='PyAlgoTrade.wequant',
     version='0.18',
     description='Python Algorithmic Trading',
     long_description='Python library for backtesting stock trading strategies.',
